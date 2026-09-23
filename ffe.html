@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>FF&E · 발주 관리</title>
+<style>
+:root{--bg:#f5f3ef;--card:#fff;--ink:#20242a;--muted:#6b727a;--line:#dedad2;--blue:#315d8c;--green:#2f7d4a;--amber:#a66b1f;--red:#a94040;--purple:#6c5b86;--soft:#f8fafc}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,"Noto Sans KR","Apple SD Gothic Neo",system-ui,sans-serif}
+main{max-width:1220px;margin:auto;padding:22px 14px 90px}.top{display:flex;gap:16px;justify-content:space-between;align-items:flex-start}.top h1{margin:0;font-size:clamp(30px,5vw,48px);letter-spacing:-.055em}.top p{margin:7px 0 0;color:var(--muted);line-height:1.5}
+.nav{display:flex;gap:7px;flex-wrap:wrap}.btn,button{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:11px;padding:10px 13px;font-weight:800;cursor:pointer;text-decoration:none}.btn.primary,button.primary{background:var(--blue);border-color:var(--blue);color:#fff}.btn.good,button.good{background:var(--green);border-color:var(--green);color:#fff}
+.notice{margin:15px 0;background:#fff;border:1px solid var(--line);border-radius:15px;padding:12px 14px;color:var(--muted);font-size:12px;line-height:1.65}.notice b{color:var(--ink)}
+.summary{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:14px 0}.stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px}.stat b{display:block;font-size:22px}.stat span{font-size:11px;color:var(--muted)}
+.attn{display:none;background:#fff9ed;border:1px solid #ead7b8;border-radius:15px;padding:13px;margin:12px 0}.attn.show{display:block}.attn h3{font-size:14px;margin:0 0 8px}.attnRow{display:flex;gap:8px;flex-wrap:wrap}.chip{border-radius:999px;padding:6px 9px;background:#fff;border:1px solid var(--line);font-size:11px}.chip.danger{border-color:#e7b7b7;color:#8d3030}.chip.warn{border-color:#e5c791;color:#8d5a0f}
+.toolbar{position:sticky;top:6px;z-index:10;background:rgba(245,243,239,.95);backdrop-filter:blur(10px);padding:8px 0}.toolbox{display:grid;grid-template-columns:2fr repeat(4,1fr) auto;gap:8px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:10px;box-shadow:0 8px 22px rgba(30,35,40,.06)}
+input,select,textarea{width:100%;border:1px solid var(--line);border-radius:10px;background:#fff;padding:10px 11px;color:var(--ink);font:inherit}textarea{min-height:88px;resize:vertical}
+.views{display:flex;gap:7px;margin:14px 0;flex-wrap:wrap}.views button.on{background:var(--ink);color:#fff}
+.groupTitle{margin:22px 4px 8px;font-size:14px;color:var(--muted);font-weight:900}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.card{background:#fff;border:1px solid var(--line);border-radius:17px;padding:14px;box-shadow:0 6px 18px rgba(30,35,40,.05);cursor:pointer}.card:hover{border-color:#c6ccd3}.cardHead{display:flex;justify-content:space-between;gap:12px}.code{font-size:10px;color:var(--muted);font-weight:900;letter-spacing:.05em}.name{font-weight:900;font-size:17px;margin-top:2px}.meta{display:flex;gap:5px;flex-wrap:wrap;margin:8px 0}.tag{font-size:10px;border-radius:999px;padding:4px 7px;background:#f1f2f3;color:#555}.tag.blue{background:#eef4fb;color:#315d8c}.tag.green{background:#edf7f0;color:#2f7d4a}.tag.amber{background:#fff7e8;color:#88590f}.tag.red{background:#fff0ed;color:#983b30}.tag.purple{background:#f3eff8;color:#6c5b86}
+.kvs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}.kv{border-top:1px solid var(--line);padding-top:8px}.kv span{display:block;color:var(--muted);font-size:9px}.kv b{font-size:12px}.next{margin-top:10px;background:#f7f8f9;border-radius:10px;padding:9px;font-size:11px;line-height:1.45;color:#515860}
+.tableWrap{overflow:auto;background:#fff;border:1px solid var(--line);border-radius:16px}table{border-collapse:collapse;width:100%;min-width:1050px}th,td{padding:10px;border-bottom:1px solid var(--line);font-size:11px;text-align:left}th{position:sticky;top:0;background:#fafafa;z-index:1;color:var(--muted)}tr:hover td{background:#fcfcfc}
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}.empty h3{color:var(--ink)}
+.modal{position:fixed;inset:0;background:rgba(16,19,24,.55);z-index:80;display:none;align-items:flex-start;justify-content:flex-end}.modal.open{display:flex}.sheet{width:min(760px,100%);height:100%;overflow:auto;background:var(--bg);padding:18px;box-shadow:-10px 0 35px rgba(0,0,0,.18)}.sheetHead{display:flex;justify-content:space-between;gap:10px;align-items:start;position:sticky;top:-18px;background:var(--bg);padding:18px 0 12px;z-index:3}.sheetHead h2{margin:0;font-size:24px}.section{background:#fff;border:1px solid var(--line);border-radius:15px;padding:13px;margin:10px 0}.section h3{font-size:13px;margin:0 0 10px}.formgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.full{grid-column:1/-1}.label{font-size:10px;color:var(--muted);font-weight:800;margin-bottom:4px}.dangerBtn{color:var(--red);border-color:#e7b7b7}
+.orderBy{font-size:12px;font-weight:900}.orderBy.late{color:var(--red)}.orderBy.soon{color:var(--amber)}.orderBy.ok{color:var(--green)}
+.linkRow,.updateRow{border-top:1px solid var(--line);padding:9px 0}.linkRow:first-of-type,.updateRow:first-of-type{border-top:0}.linkRow a{color:var(--blue);font-weight:800;text-decoration:none}.subtle{font-size:10px;color:var(--muted)}.inline{display:flex;gap:7px;align-items:center}.inline>*{min-width:0}.inline .grow{flex:1}
+.migration{background:#fff3df;border:1px solid #e7c998;border-radius:16px;padding:16px;line-height:1.6}.migration code{font-family:ui-monospace,monospace;font-size:11px}
+@media(max-width:900px){.summary{grid-template-columns:repeat(3,1fr)}.toolbox{grid-template-columns:1fr 1fr}.toolbox input{grid-column:1/-1}.grid{grid-template-columns:1fr}}
+@media(max-width:620px){main{padding:16px 10px 75px}.top{flex-direction:column}.nav{width:100%}.nav>*{flex:1;text-align:center}.summary{grid-template-columns:repeat(2,1fr)}.toolbox{grid-template-columns:1fr 1fr}.formgrid{grid-template-columns:1fr}.full{grid-column:1}.kvs{grid-template-columns:1fr 1fr}.sheet{padding:12px}.sheetHead{top:-12px;padding:12px 0}}
+</style>
+</head>
+<body>
+<main>
+<div class="top"><div><h1>📦 FF&E · 발주</h1><p id="projectLabel">Supabase 프로젝트 불러오는 중…</p></div><div class="nav"><a class="btn" href="./">⌂ 홈</a><a class="btn" href="./todo.html">✅ To-do</a><a class="btn" href="./lighting-cloud.html">💡 조명</a><a class="btn" href="./outlets-cloud.html">🔌 콘센트</a></div></div>
+<div class="notice"><b>운영 원칙:</b> 하나의 품목 ID를 기준으로 <b>공간·사양·승인·견적·주문·배송·설치·하자</b>를 끝까지 추적합니다. 설계상태와 발주상태를 분리하고, 현장 필요일에서 리드타임과 버퍼를 빼 <b>권장 주문일</b>을 자동 계산합니다.</div>
+<div id="migration" style="display:none"></div>
+<div id="app" style="display:none">
+<div class="summary" id="summary"></div>
+<div class="attn" id="attention"><h3>🚨 지금 확인할 발주</h3><div class="attnRow" id="attentionRows"></div></div>
+<div class="toolbar"><div class="toolbox">
+<input id="search" placeholder="품목·공간·브랜드·업체 검색">
+<select id="room"><option value="">모든 공간</option></select>
+<select id="category"><option value="">모든 품목</option></select>
+<select id="spec"><option value="">모든 설계상태</option></select>
+<select id="proc"><option value="">모든 발주상태</option></select>
+<button class="primary" onclick="openNew()">+ 품목 추가</button>
+</div></div>
+<div class="views"><button data-view="room" class="on">공간별</button><button data-view="category">품목별</button><button data-view="procurement">발주상태</button><button data-view="table">전체표</button></div>
+<div id="content"></div>
+</div>
+</main>
+
+<div class="modal" id="modal" onclick="if(event.target===this)closeModal()"><div class="sheet">
+<div class="sheetHead"><div><div class="code" id="mCodeLabel">NEW</div><h2 id="mTitle">품목 추가</h2></div><button onclick="closeModal()">닫기</button></div>
+<div class="section"><h3>① 품목 · 공간</h3><div class="formgrid">
+<div><div class="label">Item ID</div><input id="f_code" placeholder="예: LT-03"></div>
+<div><div class="label">공간</div><input id="f_room" placeholder="거실"></div>
+<div><div class="label">카테고리</div><select id="f_category"><option>조명</option><option>가구</option><option>커튼·블라인드</option><option>오디오</option><option>거울·오브제</option><option>식물·플랜터</option><option>가전</option><option>철물·도어락</option><option>맞춤시공</option><option>기타</option></select></div>
+<div><div class="label">세부 위치</div><input id="f_sub" placeholder="목재 구조체 / 창가 등"></div>
+<div class="full"><div class="label">품목명</div><input id="f_name" placeholder="부채형 벽등"></div>
+</div></div>
+
+<div class="section"><h3>② Specification</h3><div class="formgrid">
+<div><div class="label">브랜드</div><input id="f_brand"></div>
+<div><div class="label">제품명</div><input id="f_product"></div>
+<div><div class="label">모델</div><input id="f_model"></div>
+<div><div class="label">색상·마감</div><input id="f_finish"></div>
+<div><div class="label">치수</div><input id="f_dimensions" placeholder="W1200 × D340 × H450"></div>
+<div><div class="label">수량</div><input id="f_qty" type="number" step="0.1" value="1"></div>
+<div><div class="label">설계상태</div><select id="f_spec"><option value="candidate">후보</option><option value="selected">선정</option><option value="sample">샘플확인</option><option value="approved">최종승인</option></select></div>
+<div><div class="label">공급 책임</div><select id="f_supply"><option value="user">내가 구매</option><option value="contractor">시공사 지급</option><option value="vendor">별도업체</option><option value="existing">기보유</option></select></div>
+<div><div class="label">설치 담당</div><input id="f_installresp" placeholder="전기팀 / 가구업체 / 직접"></div>
+<div><div class="label">업체·판매처</div><input id="f_supplier"></div>
+<div class="full"><div class="label">상품 URL</div><input id="f_producturl" type="url" placeholder="https://..."></div>
+<div class="full"><div class="label">대표 이미지 URL</div><input id="f_imageurl" type="url" placeholder="https://..."></div>
+</div></div>
+
+<div class="section"><h3>③ 발주 · 비용</h3><div class="formgrid">
+<div><div class="label">발주상태</div><select id="f_proc">
+<option value="not_quoted">미견적</option><option value="quoting">견적중</option><option value="ready">주문준비</option><option value="ordered">주문완료</option><option value="production">제작중</option><option value="shipping">배송중</option><option value="delivered">도착</option><option value="installed">설치</option><option value="closed">완료</option><option value="hold">보류</option>
+</select></div>
+<div><div class="label">주문번호</div><input id="f_order_no"></div>
+<div><div class="label">예산</div><input id="f_budget" type="number" step="1"></div>
+<div><div class="label">견적가</div><input id="f_quote" type="number" step="1"></div>
+<div><div class="label">실제 결제가</div><input id="f_ordered_price" type="number" step="1"></div>
+<div><div class="label">실제 주문일</div><input id="f_order_date" type="date"></div>
+</div></div>
+
+<div class="section"><h3>④ 일정 · Lead Time</h3><div class="formgrid">
+<div><div class="label">현장 필요일</div><input id="f_required" type="date"></div>
+<div><div class="label">Lead time (일)</div><input id="f_lead" type="number" min="0"></div>
+<div><div class="label">안전 Buffer (일)</div><input id="f_buffer" type="number" min="0" value="5"></div>
+<div><div class="label">권장 주문일</div><div id="f_orderby" class="orderBy">—</div></div>
+<div><div class="label">배송예정일</div><input id="f_expected" type="date"></div>
+<div><div class="label">실제 도착일</div><input id="f_arrived" type="date"></div>
+<div><div class="label">설치일</div><input id="f_install" type="date"></div>
+<div><div class="label">연결 To-do ID</div><input id="f_todo" placeholder="todo-..."></div>
+</div></div>
+
+<div class="section"><h3>⑤ 메모</h3><textarea id="f_notes" placeholder="설치조건, 승인조건, 하자/교환 메모 등"></textarea></div>
+<div class="section"><h3>⑥ 관련 링크</h3><div id="linkList"></div><div class="inline"><select id="newLinkType" style="max-width:130px"><option value="product">상품</option><option value="quote">견적</option><option value="order">주문</option><option value="shipping">배송</option><option value="vendor">업체</option><option value="reference">참고</option></select><input id="newLinkLabel" placeholder="링크 이름" class="grow"><input id="newLinkUrl" placeholder="https://..." class="grow"><button onclick="addLink()">추가</button></div></div>
+<div class="section"><h3>⑦ 진행기록</h3><div id="updateList"></div><div class="inline"><input id="newUpdate" class="grow" placeholder="예: 업체 견적 28만원 회신, 9/28 설치 가능"><button onclick="addUpdate()">기록</button></div></div>
+<div class="inline" style="margin-top:14px"><button class="good grow" onclick="saveItem()">저장</button><button id="deleteBtn" class="dangerBtn" onclick="deleteItem()">삭제</button></div>
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./supabase-config.js"></script>
+<script>
+const SPEC={candidate:'후보',selected:'선정',sample:'샘플확인',approved:'최종승인'};
+const PROC={not_quoted:'미견적',quoting:'견적중',ready:'주문준비',ordered:'주문완료',production:'제작중',shipping:'배송중',delivered:'도착',installed:'설치',closed:'완료',hold:'보류'};
+const SEEDS=[
+{item_code:'EN-01',room_name:'현관',category:'거울·오브제',name:'원형 거울',spec_status:'selected',procurement_status:'ready',supply_responsibility:'user',related_todo_source_item_id:'todo-entry-shoecab-mirror',notes:'신발 하부장 완성 높이 확인 후 최종 크기/중심높이 확정.'},
+{item_code:'EN-02',room_name:'현관',category:'조명',name:'상판 무드램프 / 페이퍼램프',spec_status:'candidate',procurement_status:'not_quoted',supply_responsibility:'user',related_todo_source_item_id:'todo-entry-hidden-outlet'},
+{item_code:'EN-03',room_name:'현관',category:'철물·도어락',name:'도어락',spec_status:'candidate',procurement_status:'not_quoted',supply_responsibility:'user',related_todo_source_item_id:'todo-doorlock'},
+{item_code:'LI-01',room_name:'거실',category:'조명',name:'부채형 벽등',qty:2,spec_status:'selected',procurement_status:'ready',supply_responsibility:'user',install_responsibility:'전기팀',related_todo_source_item_id:'todo-living-walllamp'},
+{item_code:'LI-02',room_name:'거실',category:'조명',name:'플로어램프',spec_status:'candidate',procurement_status:'not_quoted',supply_responsibility:'user',related_todo_source_item_id:'todo-living-floorlamp'},
+{item_code:'LI-03',room_name:'거실',category:'가구',name:'턴테이블 받침 / 오디오 가구',spec_status:'candidate',procurement_status:'not_quoted',supply_responsibility:'user'},
+{item_code:'DI-01',room_name:'주방·다이닝',category:'조명',name:'식탁 펜던트',spec_status:'selected',procurement_status:'ready',supply_responsibility:'user',install_responsibility:'전기팀',related_todo_source_item_id:'todo-pendant-order'},
+{item_code:'WT-01',room_name:'거실',category:'커튼·블라인드',name:'거실 이중 커튼',spec_status:'selected',procurement_status:'quoting',supply_responsibility:'vendor',install_responsibility:'커튼업체',related_todo_source_item_id:'todo-curtain-quote'},
+{item_code:'WT-02',room_name:'침실',category:'커튼·블라인드',name:'침실 커튼',spec_status:'selected',procurement_status:'quoting',supply_responsibility:'vendor',install_responsibility:'커튼업체',related_todo_source_item_id:'todo-curtain-quote'},
+{item_code:'WT-03',room_name:'서재',category:'커튼·블라인드',name:'서재 로만쉐이드',spec_status:'selected',procurement_status:'quoting',supply_responsibility:'vendor',install_responsibility:'블라인드업체',related_todo_source_item_id:'todo-curtain-quote'},
+{item_code:'WT-04',room_name:'전면 베란다',category:'커튼·블라인드',name:'전면 베란다 블라인드',spec_status:'candidate',procurement_status:'quoting',supply_responsibility:'vendor',install_responsibility:'블라인드업체',related_todo_source_item_id:'todo-front-blind'},
+{item_code:'EX-01',room_name:'전면 베란다',category:'맞춤시공',name:'화단 덮개',spec_status:'candidate',procurement_status:'quoting',supply_responsibility:'vendor',related_todo_source_item_id:'todo-garden-cover'},
+{item_code:'EX-02',room_name:'전면 베란다',category:'맞춤시공',name:'방충망 단독 교체',spec_status:'candidate',procurement_status:'quoting',supply_responsibility:'contractor',related_todo_source_item_id:'todo-screen'}
+];
+const sb=createInteriorSupabase();
+let user,project,items=[],links=[],updates=[],view='room',editing=null;
+const $=id=>document.getElementById(id), esc=v=>String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+const won=n=>n==null||n===''?'—':new Intl.NumberFormat('ko-KR',{style:'currency',currency:'KRW',maximumFractionDigits:0}).format(Number(n));
+function dateOnly(v){return v?String(v).slice(0,10):''}
+function orderBy(i){if(!i.required_on_site_date||i.lead_time_days==null)return null;const d=new Date(i.required_on_site_date+'T12:00:00');d.setDate(d.getDate()-Number(i.lead_time_days||0)-Number(i.buffer_days||0));return d.toISOString().slice(0,10)}
+function dayDiff(d){if(!d)return null;const a=new Date();a.setHours(0,0,0,0);const b=new Date(d+'T00:00:00');return Math.ceil((b-a)/86400000)}
+function tagStatus(s){if(['approved','closed','installed','delivered'].includes(s))return 'green';if(['hold'].includes(s))return 'red';if(['quoting','ready','production','shipping','sample'].includes(s))return 'amber';return 'blue'}
+async function guard(){const {data}=await sb.auth.getUser();if(!data.user){location.href='./cloud-login.html?next='+encodeURIComponent(location.pathname);return false}user=data.user;return true}
+async function getProject(){const {data,error}=await sb.from('projects').select('*').order('created_at',{ascending:false}).limit(1).single();if(error)throw error;project=data;$('projectLabel').textContent=(project.name||'현장 프로젝트')+(project.meeting_date?' · '+project.meeting_date:'')+' · FF&E/Procurement Register'}
+async function load(){
+ const {data,error}=await sb.from('ffe_items').select('*').eq('project_id',project.id).order('item_code');
+ if(error){if(error.code==='42P01'||/ffe_items/.test(error.message)){showMigration();return}throw error}
+ items=data||[];
+ const ids=items.map(x=>x.id);
+ if(ids.length){const [lr,ur]=await Promise.all([sb.from('ffe_links').select('*').in('item_id',ids).order('created_at'),sb.from('ffe_updates').select('*').in('item_id',ids).order('created_at',{ascending:false})]);if(lr.error)throw lr.error;if(ur.error)throw ur.error;links=lr.data||[];updates=ur.data||[]}else{links=[];updates=[]}
+ $('app').style.display='block';$('migration').style.display='none';buildFilters();render();
+}
+function showMigration(){$('migration').style.display='block';$('app').style.display='none';$('migration').innerHTML='<div class="migration"><b>FF&E 테이블을 한 번만 생성하면 됩니다.</b><br>Supabase → SQL Editor에서 저장소의 <code>supabase-ffe-migration.sql</code> 전체를 실행한 뒤 새로고침하세요.<br><br><a class="btn primary" target="_blank" href="https://github.com/luclee111/interior-site-check/blob/main/supabase-ffe-migration.sql">Migration SQL 열기</a></div>'}
+function buildFilters(){
+ const set=(id,vals,label)=>{const e=$(id),old=e.value;e.innerHTML='<option value="">'+label+'</option>'+[...new Set(vals.filter(Boolean))].sort().map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');e.value=old};
+ set('room',items.map(x=>x.room_name),'모든 공간');set('category',items.map(x=>x.category),'모든 품목');
+ $('spec').innerHTML='<option value="">모든 설계상태</option>'+Object.entries(SPEC).map(([k,v])=>'<option value="'+k+'">'+v+'</option>').join('');
+ $('proc').innerHTML='<option value="">모든 발주상태</option>'+Object.entries(PROC).map(([k,v])=>'<option value="'+k+'">'+v+'</option>').join('');
+}
+function filtered(){
+ const q=$('search').value.trim().toLowerCase(),room=$('room').value,cat=$('category').value,sp=$('spec').value,pr=$('proc').value;
+ return items.filter(i=>(!q||[i.item_code,i.name,i.room_name,i.category,i.brand,i.product_name,i.supplier,i.notes].join(' ').toLowerCase().includes(q))&&(!room||i.room_name===room)&&(!cat||i.category===cat)&&(!sp||i.spec_status===sp)&&(!pr||i.procurement_status===pr));
+}
+function summary(){
+ const total=items.length,design=items.filter(i=>i.spec_status!=='approved').length,need=items.filter(i=>['not_quoted','quoting','ready'].includes(i.procurement_status)).length,ordered=items.filter(i=>['ordered','production','shipping'].includes(i.procurement_status)).length,done=items.filter(i=>['delivered','installed','closed'].includes(i.procurement_status)).length;
+ const committed=items.reduce((s,i)=>s+Number(i.ordered_price||0),0);
+ $('summary').innerHTML=[['전체',total],['설계 미확정',design],['주문 필요',need],['주문·제작중',ordered],['도착·설치',done],['확정 지출',won(committed)]].map(([n,v])=>'<div class="stat"><b>'+v+'</b><span>'+n+'</span></div>').join('');
+ const urgent=items.map(i=>({i,d:orderBy(i),days:dayDiff(orderBy(i))})).filter(x=>x.d&&['not_quoted','quoting','ready'].includes(x.i.procurement_status)&&x.days<=7).sort((a,b)=>a.days-b.days);
+ $('attention').classList.toggle('show',urgent.length>0);$('attentionRows').innerHTML=urgent.map(x=>'<button class="chip '+(x.days<0?'danger':'warn')+'" onclick="openItem(\''+x.i.id+'\')">'+esc(x.i.item_code)+' · '+esc(x.i.name)+' · '+(x.days<0?Math.abs(x.days)+'일 초과':x.days+'일 남음')+'</button>').join('');
+}
+function groupKey(i){return view==='room'?i.room_name:view==='category'?i.category:view==='procurement'?(PROC[i.procurement_status]||i.procurement_status):''}
+function card(i){
+ const od=orderBy(i),days=dayDiff(od),cls=days==null?'':days<0?'late':days<=7?'soon':'ok';
+ const last=updates.find(u=>u.item_id===i.id);
+ return '<article class="card" onclick="openItem(\''+i.id+'\')"><div class="cardHead"><div><div class="code">'+esc(i.item_code)+'</div><div class="name">'+esc(i.name)+'</div></div><span class="tag '+tagStatus(i.procurement_status)+'">'+esc(PROC[i.procurement_status]||i.procurement_status)+'</span></div><div class="meta"><span class="tag">'+esc(i.room_name)+'</span><span class="tag">'+esc(i.category)+'</span><span class="tag '+tagStatus(i.spec_status)+'">'+esc(SPEC[i.spec_status]||i.spec_status)+'</span><span class="tag purple">'+esc(i.supply_responsibility==='user'?'내가 구매':i.supply_responsibility==='contractor'?'시공사 지급':i.supply_responsibility==='vendor'?'별도업체':'기보유')+'</span></div><div class="kvs"><div class="kv"><span>수량</span><b>'+esc(i.qty)+' '+esc(i.unit)+'</b></div><div class="kv"><span>확정가</span><b>'+won(i.ordered_price)+'</b></div><div class="kv"><span>권장 주문일</span><b class="orderBy '+cls+'">'+(od||'—')+'</b></div></div>'+(last?'<div class="next">최근: '+esc(last.note)+'</div>':'')+'</article>'
+}
+function render(){
+ summary();const arr=filtered();if(!arr.length){$('content').innerHTML='<div class="empty"><h3>표시할 품목이 없습니다.</h3><p>첫 품목을 추가하거나 현재 계획 품목을 가져오세요.</p>'+(items.length===0?'<button class="primary" onclick="seedItems()">현재 계획 품목 13개 가져오기</button>':'')+'</div>';return}
+ if(view==='table'){$('content').innerHTML='<div class="tableWrap"><table><thead><tr><th>ID</th><th>공간</th><th>품목</th><th>분류</th><th>설계</th><th>발주</th><th>공급</th><th>현장필요일</th><th>권장주문일</th><th>예산</th><th>실결제</th></tr></thead><tbody>'+arr.map(i=>'<tr onclick="openItem(\''+i.id+'\')" style="cursor:pointer"><td>'+esc(i.item_code)+'</td><td>'+esc(i.room_name)+'</td><td><b>'+esc(i.name)+'</b></td><td>'+esc(i.category)+'</td><td>'+esc(SPEC[i.spec_status]||i.spec_status)+'</td><td>'+esc(PROC[i.procurement_status]||i.procurement_status)+'</td><td>'+esc(i.supply_responsibility)+'</td><td>'+esc(i.required_on_site_date||'—')+'</td><td>'+esc(orderBy(i)||'—')+'</td><td>'+won(i.budget)+'</td><td>'+won(i.ordered_price)+'</td></tr>').join('')+'</tbody></table></div>';return}
+ const groups={};for(const i of arr){const k=groupKey(i)||'기타';(groups[k]??=[]).push(i)}
+ $('content').innerHTML=Object.entries(groups).map(([k,v])=>'<div class="groupTitle">'+esc(k)+' · '+v.length+'</div><div class="grid">'+v.map(card).join('')+'</div>').join('');
+}
+function set(id,v){$(id).value=v??''}function num(id){const v=$(id).value;return v===''?null:Number(v)}function txt(id){const v=$(id).value.trim();return v||null}
+function calcModalOrder(){const req=$('f_required').value,lead=num('f_lead'),buf=num('f_buffer')||0;if(!req||lead==null){$('f_orderby').textContent='—';$('f_orderby').className='orderBy';return}const d=new Date(req+'T12:00:00');d.setDate(d.getDate()-lead-buf);const s=d.toISOString().slice(0,10),days=dayDiff(s);$('f_orderby').textContent=s+(days<0?' · '+Math.abs(days)+'일 초과':days<=7?' · '+days+'일 남음':'');$('f_orderby').className='orderBy '+(days<0?'late':days<=7?'soon':'ok')}
+function openNew(){editing=null;$('mTitle').textContent='새 품목';$('mCodeLabel').textContent='NEW';['f_code','f_room','f_sub','f_name','f_brand','f_product','f_model','f_finish','f_dimensions','f_supplier','f_installresp','f_producturl','f_imageurl','f_order_no','f_required','f_order_date','f_expected','f_arrived','f_install','f_todo','f_notes'].forEach(x=>set(x,''));set('f_qty',1);set('f_budget','');set('f_quote','');set('f_ordered_price','');set('f_lead','');set('f_buffer',5);set('f_category','조명');set('f_spec','candidate');set('f_supply','user');set('f_proc','not_quoted');$('deleteBtn').style.display='none';$('linkList').innerHTML='<div class="subtle">저장 후 링크를 추가할 수 있습니다.</div>';$('updateList').innerHTML='<div class="subtle">저장 후 진행기록을 추가할 수 있습니다.</div>';calcModalOrder();$('modal').classList.add('open')}
+function openItem(id){const i=items.find(x=>x.id===id);if(!i)return;editing=i;$('mTitle').textContent=i.name;$('mCodeLabel').textContent=i.item_code;set('f_code',i.item_code);set('f_room',i.room_name);set('f_category',i.category);set('f_sub',i.sub_location);set('f_name',i.name);set('f_brand',i.brand);set('f_product',i.product_name);set('f_model',i.model);set('f_finish',i.finish);set('f_dimensions',i.dimensions);set('f_qty',i.qty);set('f_spec',i.spec_status);set('f_supply',i.supply_responsibility);set('f_installresp',i.install_responsibility);set('f_supplier',i.supplier);set('f_producturl',i.product_url);set('f_imageurl',i.image_url);set('f_proc',i.procurement_status);set('f_order_no',i.order_number);set('f_budget',i.budget);set('f_quote',i.quoted_price);set('f_ordered_price',i.ordered_price);set('f_order_date',dateOnly(i.order_date));set('f_required',dateOnly(i.required_on_site_date));set('f_lead',i.lead_time_days);set('f_buffer',i.buffer_days??5);set('f_expected',dateOnly(i.expected_delivery_date));set('f_arrived',dateOnly(i.actual_delivery_date));set('f_install',dateOnly(i.install_date));set('f_todo',i.related_todo_source_item_id);set('f_notes',i.notes);$('deleteBtn').style.display='inline-block';renderLinks();renderUpdates();calcModalOrder();$('modal').classList.add('open')}
+function closeModal(){$('modal').classList.remove('open');editing=null}
+async function saveItem(){
+ const row={project_id:project.id,item_code:$('f_code').value.trim(),room_name:$('f_room').value.trim()||'공통',sub_location:txt('f_sub'),category:$('f_category').value,name:$('f_name').value.trim(),brand:txt('f_brand'),product_name:txt('f_product'),model:txt('f_model'),finish:txt('f_finish'),dimensions:txt('f_dimensions'),qty:num('f_qty')||1,unit:'EA',supplier:txt('f_supplier'),supply_responsibility:$('f_supply').value,install_responsibility:txt('f_installresp'),spec_status:$('f_spec').value,procurement_status:$('f_proc').value,budget:num('f_budget'),quoted_price:num('f_quote'),ordered_price:num('f_ordered_price'),lead_time_days:num('f_lead'),buffer_days:num('f_buffer')||0,required_on_site_date:txt('f_required'),order_date:txt('f_order_date'),expected_delivery_date:txt('f_expected'),actual_delivery_date:txt('f_arrived'),install_date:txt('f_install'),order_number:txt('f_order_no'),product_url:txt('f_producturl'),image_url:txt('f_imageurl'),related_todo_source_item_id:txt('f_todo'),notes:txt('f_notes'),updated_at:new Date().toISOString()};
+ if(!row.item_code||!row.name)return alert('Item ID와 품목명은 필수입니다.');
+ let res;if(editing)res=await sb.from('ffe_items').update(row).eq('id',editing.id).select().single();else res=await sb.from('ffe_items').insert(row).select().single();if(res.error)return alert('저장 실패: '+res.error.message);await load();closeModal()
+}
+async function deleteItem(){if(!editing||!confirm(editing.name+' 품목을 삭제할까요?'))return;const {error}=await sb.from('ffe_items').delete().eq('id',editing.id);if(error)return alert(error.message);closeModal();await load()}
+function renderLinks(){const a=links.filter(x=>x.item_id===editing.id);$('linkList').innerHTML=a.length?a.map(x=>'<div class="linkRow inline"><span class="tag">'+esc(x.link_type)+'</span><a class="grow" href="'+esc(x.url)+'" target="_blank" rel="noopener">'+esc(x.label)+'</a><button onclick="event.stopPropagation();removeLink(\''+x.id+'\')">삭제</button></div>').join(''):'<div class="subtle">관련 링크가 없습니다.</div>'}
+async function addLink(){if(!editing)return alert('품목을 먼저 저장해주세요.');let url=$('newLinkUrl').value.trim();if(!url)return;if(!/^https?:\/\//i.test(url))url='https://'+url;const {error}=await sb.from('ffe_links').insert({item_id:editing.id,label:$('newLinkLabel').value.trim()||'링크',url,link_type:$('newLinkType').value});if(error)return alert(error.message);$('newLinkLabel').value='';$('newLinkUrl').value='';await load();openItem(editing.id)}
+async function removeLink(id){const {error}=await sb.from('ffe_links').delete().eq('id',id);if(error)return alert(error.message);await load();openItem(editing.id)}
+function renderUpdates(){const a=updates.filter(x=>x.item_id===editing.id).slice(0,20);$('updateList').innerHTML=a.length?a.map(x=>'<div class="updateRow"><div>'+esc(x.note)+'</div><div class="subtle">'+new Date(x.created_at).toLocaleString('ko-KR')+(x.status?' · '+esc(PROC[x.status]||x.status):'')+'</div></div>').join(''):'<div class="subtle">진행기록이 없습니다.</div>'}
+async function addUpdate(){if(!editing)return alert('품목을 먼저 저장해주세요.');const note=$('newUpdate').value.trim();if(!note)return;const {error}=await sb.from('ffe_updates').insert({item_id:editing.id,note,status:$('f_proc').value});if(error)return alert(error.message);$('newUpdate').value='';await load();openItem(editing.id)}
+async function seedItems(){if(!confirm('현재 계획을 기준으로 초기 품목 13개를 추가할까요? 모두 후보/초기상태라 이후 자유롭게 수정할 수 있습니다.'))return;const payload=SEEDS.map(x=>({...x,project_id:project.id,buffer_days:5,updated_at:new Date().toISOString()}));const {error}=await sb.from('ffe_items').upsert(payload,{onConflict:'project_id,item_code',ignoreDuplicates:true});if(error)return alert('초기 품목 추가 실패: '+error.message);await load()}
+['search','room','category','spec','proc'].forEach(id=>$(id).addEventListener('input',render));document.querySelectorAll('.views button').forEach(b=>b.onclick=()=>{view=b.dataset.view;document.querySelectorAll('.views button').forEach(x=>x.classList.toggle('on',x===b));render()});['f_required','f_lead','f_buffer'].forEach(id=>$(id).addEventListener('input',calcModalOrder));
+(async()=>{try{if(!await guard())return;await getProject();await load()}catch(e){console.error(e);$('migration').style.display='block';$('migration').innerHTML='<div class="migration"><b>불러오기 실패</b><br>'+esc(e.message)+'</div>'}})();
+</script>
+</body></html>
