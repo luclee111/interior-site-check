@@ -185,7 +185,17 @@ const ROOM_PREFIX={
 function roomPrefix(room){return ROOM_PREFIX[String(room||'').trim()]||'CM'}
 function nextItemCode(room,excludeId=null){
  const prefix=roomPrefix(room);
- const used=items.filter(i=>i.id!==excludeId).map(i=>String(i.item_code||'')).map(x=>new RegExp('^'+prefix+'-(\\d+)
+ const used=items.filter(i=>i.id!==excludeId).map(i=>String(i.item_code||'')).map(x=>new RegExp('^'+prefix+'-(\\d+)$','i').exec(x)).filter(Boolean).map(m=>Number(m[1]));
+ const n=(used.length?Math.max(...used):0)+1;
+ return prefix+'-'+String(n).padStart(3,'0');
+}
+function syncNewItemCode(){
+ if(editing)return;
+ const room=$('f_room').value;
+ const code=room?nextItemCode(room):'';
+ $('f_code').value=code;
+ $('mCodeLabel').textContent=code||'공간 선택';
+}
 function setSaveState(text,kind=''){
  const el=$('saveState');if(!el)return;el.textContent=text;el.className='saveState'+(kind?' '+kind:'');
 }
@@ -232,70 +242,15 @@ async function addUpdate(){if(!editing)return alert('품목을 먼저 저장해�
 async function renumberByRoom(){
  if(!items.length)return alert('정리할 품목이 없습니다.');
  if(modalOpen)return alert('열려 있는 품목 편집창을 먼저 닫아주세요.');
- if(!confirm('기존 품목의 Item ID를 공간별 Prefix 규칙으로 다시 정렬할까요?\n예: 현관 EN-001, 거실 LV-001, 침실 BR-001\n\n품목의 내부 UUID·링크·진행기록은 유지되고 표시 코드만 바뀝니다.'))return;
+ if(!confirm('기존 품목의 Item ID를 공간별 Prefix 규칙으로 다시 정렬할까요?\\n예: 현관 EN-001, 거실 LV-001, 침실 BR-001\\n\\n품목의 내부 UUID·링크·진행기록은 유지되고 표시 코드만 바뀝니다.'))return;
  const ordered=[...items].sort((a,b)=>String(a.created_at||'').localeCompare(String(b.created_at||''))||String(a.item_code||'').localeCompare(String(b.item_code||'')));
  const count={};const mapping=ordered.map(i=>{const p=roomPrefix(i.room_name);count[p]=(count[p]||0)+1;return{id:i.id,next:p+'-'+String(count[p]).padStart(3,'0')}});
  try{
   for(const m of mapping){const {error}=await sb.from('ffe_items').update({item_code:'TMP-'+m.id.replaceAll('-','').slice(0,18),updated_at:new Date().toISOString()}).eq('id',m.id);if(error)throw error}
   for(const m of mapping){const {error}=await sb.from('ffe_items').update({item_code:m.next,updated_at:new Date().toISOString()}).eq('id',m.id);if(error)throw error}
   await load();alert('공간별 코드 정리가 완료되었습니다.');
- }catch(e){console.error(e);alert('코드 정리 중 오류가 발생했습니다: '+e.message+'\n다시 실행하면 이어서 정리할 수 있습니다.');await load()}
+ }catch(e){console.error(e);alert('코드 정리 중 오류가 발생했습니다: '+e.message+'\\n다시 실행하면 이어서 정리할 수 있습니다.');await load()}
 }
-async function seedItems(){if(!confirm('현재 계획을 기준으로 초기 품목 13개를 추가할까요? 모두 후보/초기상태라 이후 자유롭게 수정할 수 있습니다.'))return;const payload=SEEDS.map(x=>({...x,qty:x.qty??1,unit:x.unit??'EA',project_id:project.id,buffer_days:x.buffer_days??5,updated_at:new Date().toISOString()}));const {error}=await sb.from('ffe_items').upsert(payload,{onConflict:'project_id,item_code',ignoreDuplicates:true});if(error)return alert('초기 품목 추가 실패: '+error.message);await load()}
-['search','room','category','spec','proc'].forEach(id=>$(id).addEventListener('input',render));document.querySelectorAll('.views button').forEach(b=>b.onclick=()=>{view=b.dataset.view;document.querySelectorAll('.views button').forEach(x=>x.classList.toggle('on',x===b));render()});MAIN_FIELDS.forEach(id=>{const el=$(id);if(!el)return;el.addEventListener('input',scheduleAutoSave);el.addEventListener('change',scheduleAutoSave)});
-(async()=>{try{if(!await guard())return;await getProject();await load()}catch(e){console.error(e);$('migration').style.display='block';$('migration').innerHTML='<div class="migration"><b>불러오기 실패</b><br>'+esc(e.message)+'</div>'}})();
-</script>
-</body></html>,'i').exec(x)).filter(Boolean).map(m=>Number(m[1]));
- const n=(used.length?Math.max(...used):0)+1;
- return prefix+'-'+String(n).padStart(3,'0');
-}
-function syncNewItemCode(){
- if(editing)return;
- const room=$('f_room').value;
- const code=room?nextItemCode(room):'';
- $('f_code').value=code;
- $('mCodeLabel').textContent=code||'공간 선택';
-}
-function setSaveState(text,kind=''){
- const el=$('saveState');if(!el)return;el.textContent=text;el.className='saveState'+(kind?' '+kind:'');
-}
-const MAIN_FIELDS=['f_room','f_category','f_sub','f_name','f_brand','f_product','f_model','f_finish','f_dimensions','f_qty','f_spec','f_supply','f_installresp','f_supplier','f_producturl','f_imageurl','f_proc','f_order_no','f_budget','f_quote','f_ordered_price','f_order_date','f_required','f_lead','f_buffer','f_expected','f_arrived','f_install','f_todo','f_notes'];
-function scheduleAutoSave(){
- if(!modalOpen)return;
- calcModalOrder();
- clearTimeout(autoSaveTimer);
- if(!editing&&!$('f_name').value.trim()){setSaveState('품목명을 입력하면 자동 저장됩니다');return}
- setSaveState('변경사항 대기 중…','saving');
- autoSaveTimer=setTimeout(()=>saveItem({quiet:true}),650);
-}
-function openNew(){editing=null;modalOpen=true;$('mTitle').textContent='새 품목';const code=nextItemCode();$('mCodeLabel').textContent=code;['f_room','f_sub','f_name','f_brand','f_product','f_model','f_finish','f_dimensions','f_supplier','f_installresp','f_producturl','f_imageurl','f_order_no','f_required','f_order_date','f_expected','f_arrived','f_install','f_todo','f_notes'].forEach(x=>set(x,''));set('f_code',code);set('f_qty',1);set('f_budget','');set('f_quote','');set('f_ordered_price','');set('f_lead','');set('f_buffer',5);set('f_category','조명');set('f_spec','candidate');set('f_supply','user');set('f_proc','not_quoted');$('deleteBtn').style.display='none';$('linkList').innerHTML='<div class="subtle">품목명을 입력해 첫 자동 저장이 되면 링크를 추가할 수 있습니다.</div>';$('updateList').innerHTML='<div class="subtle">품목명을 입력해 첫 자동 저장이 되면 진행기록을 추가할 수 있습니다.</div>';setSaveState('입력하면 자동 저장됩니다');calcModalOrder();$('modal').classList.add('open')}
-function openItem(id){const i=items.find(x=>x.id===id);if(!i)return;editing=i;modalOpen=true;$('mTitle').textContent=i.name;$('mCodeLabel').textContent=i.item_code;set('f_code',i.item_code);set('f_room',i.room_name);set('f_category',i.category);set('f_sub',i.sub_location);set('f_name',i.name);set('f_brand',i.brand);set('f_product',i.product_name);set('f_model',i.model);set('f_finish',i.finish);set('f_dimensions',i.dimensions);set('f_qty',i.qty);set('f_spec',i.spec_status);set('f_supply',i.supply_responsibility);set('f_installresp',i.install_responsibility);set('f_supplier',i.supplier);set('f_producturl',i.product_url);set('f_imageurl',i.image_url);set('f_proc',i.procurement_status);set('f_order_no',i.order_number);set('f_budget',i.budget);set('f_quote',i.quoted_price);set('f_ordered_price',i.ordered_price);set('f_order_date',dateOnly(i.order_date));set('f_required',dateOnly(i.required_on_site_date));set('f_lead',i.lead_time_days);set('f_buffer',i.buffer_days??5);set('f_expected',dateOnly(i.expected_delivery_date));set('f_arrived',dateOnly(i.actual_delivery_date));set('f_install',dateOnly(i.install_date));set('f_todo',i.related_todo_source_item_id);set('f_notes',i.notes);$('deleteBtn').style.display='inline-block';renderLinks();renderUpdates();setSaveState('저장됨','saved');calcModalOrder();$('modal').classList.add('open')}
-async function closeModal(){clearTimeout(autoSaveTimer);if(modalOpen&&$('f_name').value.trim()){await saveItem({quiet:true})}modalOpen=false;$('modal').classList.remove('open');editing=null}
-async function saveItem(opts={}){
- if(autoSaveBusy)return editing;
- const quiet=!!opts.quiet;
- const row={project_id:project.id,item_code:$('f_code').value.trim()||nextItemCode(),room_name:$('f_room').value.trim()||'공통',sub_location:txt('f_sub'),category:$('f_category').value,name:$('f_name').value.trim(),brand:txt('f_brand'),product_name:txt('f_product'),model:txt('f_model'),finish:txt('f_finish'),dimensions:txt('f_dimensions'),qty:num('f_qty')||1,unit:'EA',supplier:txt('f_supplier'),supply_responsibility:$('f_supply').value,install_responsibility:txt('f_installresp'),spec_status:$('f_spec').value,procurement_status:$('f_proc').value,budget:num('f_budget'),quoted_price:num('f_quote'),ordered_price:num('f_ordered_price'),lead_time_days:num('f_lead'),buffer_days:num('f_buffer')||0,required_on_site_date:txt('f_required'),order_date:txt('f_order_date'),expected_delivery_date:txt('f_expected'),actual_delivery_date:txt('f_arrived'),install_date:txt('f_install'),order_number:txt('f_order_no'),product_url:txt('f_producturl'),image_url:txt('f_imageurl'),related_todo_source_item_id:txt('f_todo'),notes:txt('f_notes'),updated_at:new Date().toISOString()};
- if(!row.name){if(!quiet)alert('품목명을 입력해주세요.');setSaveState('품목명을 입력하면 자동 저장됩니다');return null}
- autoSaveBusy=true;setSaveState('☁️ 저장 중…','saving');
- try{
-  let res;
-  if(editing)res=await sb.from('ffe_items').update(row).eq('id',editing.id).select().single();
-  else res=await sb.from('ffe_items').insert(row).select().single();
-  if(res.error)throw res.error;
-  const saved=res.data;
-  const idx=items.findIndex(x=>x.id===saved.id);if(idx>=0)items[idx]=saved;else items.push(saved);
-  editing=saved;$('f_code').value=saved.item_code;$('mCodeLabel').textContent=saved.item_code;$('mTitle').textContent=saved.name;$('deleteBtn').style.display='inline-block';
-  buildFilters();render();setSaveState('✓ 자동 저장됨','saved');
-  return saved;
- }catch(e){console.error(e);setSaveState('⚠ 저장 실패','error');if(!quiet)alert('저장 실패: '+e.message);return null}
- finally{autoSaveBusy=false}
-}
-async function deleteItem(){if(!editing||!confirm(editing.name+' 품목을 삭제할까요?'))return;const {error}=await sb.from('ffe_items').delete().eq('id',editing.id);if(error)return alert(error.message);modalOpen=false;$('modal').classList.remove('open');editing=null;await load()}
-function renderLinks(){const a=links.filter(x=>x.item_id===editing.id);$('linkList').innerHTML=a.length?a.map(x=>'<div class="linkRow inline"><span class="tag">'+esc(x.link_type)+'</span><a class="grow" href="'+esc(x.url)+'" target="_blank" rel="noopener">'+esc(x.label)+'</a><button onclick="event.stopPropagation();removeLink(\''+x.id+'\')">삭제</button></div>').join(''):'<div class="subtle">관련 링크가 없습니다.</div>'}
-async function addLink(){if(!editing)return alert('품목을 먼저 저장해주세요.');let url=$('newLinkUrl').value.trim();if(!url)return;if(!/^https?:\/\//i.test(url))url='https://'+url;const {error}=await sb.from('ffe_links').insert({item_id:editing.id,label:$('newLinkLabel').value.trim()||'링크',url,link_type:$('newLinkType').value});if(error)return alert(error.message);$('newLinkLabel').value='';$('newLinkUrl').value='';await load();openItem(editing.id)}
-async function removeLink(id){const {error}=await sb.from('ffe_links').delete().eq('id',id);if(error)return alert(error.message);await load();openItem(editing.id)}
-function renderUpdates(){const a=updates.filter(x=>x.item_id===editing.id).slice(0,20);$('updateList').innerHTML=a.length?a.map(x=>'<div class="updateRow"><div>'+esc(x.note)+'</div><div class="subtle">'+new Date(x.created_at).toLocaleString('ko-KR')+(x.status?' · '+esc(PROC[x.status]||x.status):'')+'</div></div>').join(''):'<div class="subtle">진행기록이 없습니다.</div>'}
-async function addUpdate(){if(!editing)return alert('품목을 먼저 저장해주세요.');const note=$('newUpdate').value.trim();if(!note)return;const {error}=await sb.from('ffe_updates').insert({item_id:editing.id,note,status:$('f_proc').value});if(error)return alert(error.message);$('newUpdate').value='';await load();openItem(editing.id)}
 async function seedItems(){if(!confirm('현재 계획을 기준으로 초기 품목 13개를 추가할까요? 모두 후보/초기상태라 이후 자유롭게 수정할 수 있습니다.'))return;const payload=SEEDS.map(x=>({...x,qty:x.qty??1,unit:x.unit??'EA',project_id:project.id,buffer_days:x.buffer_days??5,updated_at:new Date().toISOString()}));const {error}=await sb.from('ffe_items').upsert(payload,{onConflict:'project_id,item_code',ignoreDuplicates:true});if(error)return alert('초기 품목 추가 실패: '+error.message);await load()}
 ['search','room','category','spec','proc'].forEach(id=>$(id).addEventListener('input',render));document.querySelectorAll('.views button').forEach(b=>b.onclick=()=>{view=b.dataset.view;document.querySelectorAll('.views button').forEach(x=>x.classList.toggle('on',x===b));render()});MAIN_FIELDS.forEach(id=>{const el=$(id);if(!el)return;el.addEventListener('input',scheduleAutoSave);el.addEventListener('change',scheduleAutoSave)});
 (async()=>{try{if(!await guard())return;await getProject();await load()}catch(e){console.error(e);$('migration').style.display='block';$('migration').innerHTML='<div class="migration"><b>불러오기 실패</b><br>'+esc(e.message)+'</div>'}})();
