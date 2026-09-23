@@ -12,7 +12,7 @@ main{max-width:1220px;margin:auto;padding:22px 14px 90px}.top{display:flex;gap:1
 .notice{margin:15px 0;background:#fff;border:1px solid var(--line);border-radius:15px;padding:12px 14px;color:var(--muted);font-size:12px;line-height:1.65}.notice b{color:var(--ink)}
 .summary{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:14px 0}.stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px}.stat b{display:block;font-size:22px}.stat span{font-size:11px;color:var(--muted)}
 .attn{display:none;background:#fff9ed;border:1px solid #ead7b8;border-radius:15px;padding:13px;margin:12px 0}.attn.show{display:block}.attn h3{font-size:14px;margin:0 0 8px}.attnRow{display:flex;gap:8px;flex-wrap:wrap}.chip{border-radius:999px;padding:6px 9px;background:#fff;border:1px solid var(--line);font-size:11px}.chip.danger{border-color:#e7b7b7;color:#8d3030}.chip.warn{border-color:#e5c791;color:#8d5a0f}
-.toolbar{position:sticky;top:6px;z-index:10;background:rgba(245,243,239,.95);backdrop-filter:blur(10px);padding:8px 0}.toolbox{display:grid;grid-template-columns:2fr repeat(4,1fr) auto;gap:8px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:10px;box-shadow:0 8px 22px rgba(30,35,40,.06)}
+.toolbar{position:sticky;top:6px;z-index:10;background:rgba(245,243,239,.95);backdrop-filter:blur(10px);padding:8px 0}.toolbox{display:grid;grid-template-columns:2fr repeat(4,1fr) auto auto;gap:8px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:10px;box-shadow:0 8px 22px rgba(30,35,40,.06)}
 input,select,textarea{width:100%;border:1px solid var(--line);border-radius:10px;background:#fff;padding:10px 11px;color:var(--ink);font:inherit}textarea{min-height:88px;resize:vertical}
 .views{display:flex;gap:7px;margin:14px 0;flex-wrap:wrap}.views button.on{background:var(--ink);color:#fff}
 .groupTitle{margin:22px 4px 8px;font-size:14px;color:var(--muted);font-weight:900}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.card{background:#fff;border:1px solid var(--line);border-radius:17px;padding:14px;box-shadow:0 6px 18px rgba(30,35,40,.05);cursor:pointer}.card:hover{border-color:#c6ccd3}.cardHead{display:flex;justify-content:space-between;gap:12px}.code{font-size:10px;color:var(--muted);font-weight:900;letter-spacing:.05em}.name{font-weight:900;font-size:17px;margin-top:2px}.meta{display:flex;gap:5px;flex-wrap:wrap;margin:8px 0}.tag{font-size:10px;border-radius:999px;padding:4px 7px;background:#f1f2f3;color:#555}.tag.blue{background:#eef4fb;color:#315d8c}.tag.green{background:#edf7f0;color:#2f7d4a}.tag.amber{background:#fff7e8;color:#88590f}.tag.red{background:#fff0ed;color:#983b30}.tag.purple{background:#f3eff8;color:#6c5b86}
@@ -30,7 +30,7 @@ input,select,textarea{width:100%;border:1px solid var(--line);border-radius:10px
 <body>
 <main>
 <div class="top"><div><h1>📦 FF&E · 발주</h1><p id="projectLabel">Supabase 프로젝트 불러오는 중…</p></div><div class="nav"><a class="btn" href="./">⌂ 홈</a><a class="btn" href="./todo.html">✅ To-do</a><a class="btn" href="./lighting-cloud.html">💡 조명</a><a class="btn" href="./outlets-cloud.html">🔌 콘센트</a></div></div>
-<div class="notice"><b>운영 원칙:</b> 하나의 품목 ID를 기준으로 <b>공간·사양·승인·견적·주문·배송·설치·하자</b>를 끝까지 추적합니다. 설계상태와 발주상태를 분리하고, 현장 필요일에서 리드타임과 버퍼를 빼 <b>권장 주문일</b>을 자동 계산합니다.</div>
+<div class="notice"><b>운영 원칙:</b> 하나의 품목 ID를 기준으로 <b>공간·사양·승인·견적·주문·배송·설치·하자</b>를 끝까지 추적합니다. 새 품목 ID는 <b>공간별 Prefix + 순번</b>(예: EN-001, LV-001)으로 자동 부여됩니다. 설계상태와 발주상태를 분리하고, 현장 필요일에서 리드타임과 버퍼를 빼 <b>권장 주문일</b>을 자동 계산합니다.</div>
 <div id="migration" style="display:none"></div>
 <div id="app" style="display:none">
 <div class="summary" id="summary"></div>
@@ -41,7 +41,7 @@ input,select,textarea{width:100%;border:1px solid var(--line);border-radius:10px
 <select id="category"><option value="">모든 품목</option></select>
 <select id="spec"><option value="">모든 설계상태</option></select>
 <select id="proc"><option value="">모든 발주상태</option></select>
-<button class="primary" onclick="openNew()">+ 품목 추가</button>
+<button onclick="renumberByRoom()" title="기존 품목 코드를 공간별 규칙으로 다시 정렬합니다."># 코드 정리</button><button class="primary" onclick="openNew()">+ 품목 추가</button>
 </div></div>
 <div class="views"><button data-view="room" class="on">공간별</button><button data-view="category">품목별</button><button data-view="procurement">발주상태</button><button data-view="table">전체표</button></div>
 <div id="content"></div>
@@ -51,8 +51,13 @@ input,select,textarea{width:100%;border:1px solid var(--line);border-radius:10px
 <div class="modal" id="modal"><div class="sheet">
 <div class="sheetHead"><div><div class="code" id="mCodeLabel">NEW</div><h2 id="mTitle">품목 추가</h2><div class="saveState" id="saveState">입력하면 자동 저장됩니다</div></div><button onclick="closeModal()">닫기</button></div>
 <div class="section"><h3>① 품목 · 공간</h3><div class="formgrid">
-<div><div class="label">Item ID · 자동부여</div><input id="f_code" readonly title="새 품목은 FF-001 형식으로 자동 번호가 부여됩니다."></div>
-<div><div class="label">공간</div><input id="f_room" placeholder="거실"></div>
+<div><div class="label">Item ID · 공간별 자동부여</div><input id="f_code" readonly title="공간을 선택하면 EN-001, LV-001 같은 형식으로 자동 번호가 부여됩니다."></div>
+<div><div class="label">공간</div><select id="f_room">
+<option value="">공간 선택</option>
+<option>현관</option><option>거실</option><option>주방·다이닝</option><option>침실</option><option>서재</option><option>드레스룸</option>
+<option>욕실</option><option>욕실 1</option><option>욕실 2</option><option>복도</option>
+<option>전면 베란다</option><option>후면 베란다</option><option>공통</option>
+</select></div>
 <div><div class="label">카테고리</div><select id="f_category"><option>조명</option><option>가구</option><option>커튼·블라인드</option><option>오디오</option><option>거울·오브제</option><option>식물·플랜터</option><option>가전</option><option>철물·도어락</option><option>맞춤시공</option><option>기타</option></select></div>
 <div><div class="label">세부 위치</div><input id="f_sub" placeholder="목재 구조체 / 창가 등"></div>
 <div class="full"><div class="label">품목명</div><input id="f_name" placeholder="부채형 벽등"></div>
@@ -107,19 +112,19 @@ input,select,textarea{width:100%;border:1px solid var(--line);border-radius:10px
 const SPEC={candidate:'후보',selected:'선정',sample:'샘플확인',approved:'최종승인'};
 const PROC={not_quoted:'미견적',quoting:'견적중',ready:'주문준비',ordered:'주문완료',production:'제작중',shipping:'배송중',delivered:'도착',installed:'설치',closed:'완료',hold:'보류'};
 const SEEDS=[
-{item_code:'EN-01',room_name:'현관',category:'거울·오브제',name:'원형 거울',spec_status:'selected',procurement_status:'ready',supply_responsibility:'user',related_todo_source_item_id:'todo-entry-shoecab-mirror',notes:'신발 하부장 완성 높이 확인 후 최종 크기/중심높이 확정.'},
-{item_code:'EN-02',room_name:'현관',category:'조명',name:'상판 무드램프 / 페이퍼램프',spec_status:'candidate',procurement_status:'not_quoted',supply_responsibility:'user',related_todo_source_item_id:'todo-entry-hidden-outlet'},
-{item_code:'EN-03',room_name:'현관',category:'철물·도어락',name:'도어락',spec_status:'candidate',procurement_status:'not_quoted',supply_responsibility:'user',related_todo_source_item_id:'todo-doorlock'},
-{item_code:'LI-01',room_name:'거실',category:'조명',name:'부채형 벽등',qty:2,spec_status:'selected',procurement_status:'ready',supply_responsibility:'user',install_responsibility:'전기팀',related_todo_source_item_id:'todo-living-walllamp'},
-{item_code:'LI-02',room_name:'거실',category:'조명',name:'플로어램프',spec_status:'candidate',procurement_status:'not_quoted',supply_responsibility:'user',related_todo_source_item_id:'todo-living-floorlamp'},
-{item_code:'LI-03',room_name:'거실',category:'가구',name:'턴테이블 받침 / 오디오 가구',spec_status:'candidate',procurement_status:'not_quoted',supply_responsibility:'user'},
-{item_code:'DI-01',room_name:'주방·다이닝',category:'조명',name:'식탁 펜던트',spec_status:'selected',procurement_status:'ready',supply_responsibility:'user',install_responsibility:'전기팀',related_todo_source_item_id:'todo-pendant-order'},
-{item_code:'WT-01',room_name:'거실',category:'커튼·블라인드',name:'거실 이중 커튼',spec_status:'selected',procurement_status:'quoting',supply_responsibility:'vendor',install_responsibility:'커튼업체',related_todo_source_item_id:'todo-curtain-quote'},
-{item_code:'WT-02',room_name:'침실',category:'커튼·블라인드',name:'침실 커튼',spec_status:'selected',procurement_status:'quoting',supply_responsibility:'vendor',install_responsibility:'커튼업체',related_todo_source_item_id:'todo-curtain-quote'},
-{item_code:'WT-03',room_name:'서재',category:'커튼·블라인드',name:'서재 로만쉐이드',spec_status:'selected',procurement_status:'quoting',supply_responsibility:'vendor',install_responsibility:'블라인드업체',related_todo_source_item_id:'todo-curtain-quote'},
-{item_code:'WT-04',room_name:'전면 베란다',category:'커튼·블라인드',name:'전면 베란다 블라인드',spec_status:'candidate',procurement_status:'quoting',supply_responsibility:'vendor',install_responsibility:'블라인드업체',related_todo_source_item_id:'todo-front-blind'},
-{item_code:'EX-01',room_name:'전면 베란다',category:'맞춤시공',name:'화단 덮개',spec_status:'candidate',procurement_status:'quoting',supply_responsibility:'vendor',related_todo_source_item_id:'todo-garden-cover'},
-{item_code:'EX-02',room_name:'전면 베란다',category:'맞춤시공',name:'방충망 단독 교체',spec_status:'candidate',procurement_status:'quoting',supply_responsibility:'contractor',related_todo_source_item_id:'todo-screen'}
+{item_code:'EN-001',room_name:'현관',category:'거울·오브제',name:'원형 거울',spec_status:'selected',procurement_status:'ready',supply_responsibility:'user',related_todo_source_item_id:'todo-entry-shoecab-mirror',notes:'신발 하부장 완성 높이 확인 후 최종 크기/중심높이 확정.'},
+{item_code:'EN-002',room_name:'현관',category:'조명',name:'상판 무드램프 / 페이퍼램프',spec_status:'candidate',procurement_status:'not_quoted',supply_responsibility:'user',related_todo_source_item_id:'todo-entry-hidden-outlet'},
+{item_code:'EN-003',room_name:'현관',category:'철물·도어락',name:'도어락',spec_status:'candidate',procurement_status:'not_quoted',supply_responsibility:'user',related_todo_source_item_id:'todo-doorlock'},
+{item_code:'LV-001',room_name:'거실',category:'조명',name:'부채형 벽등',qty:2,spec_status:'selected',procurement_status:'ready',supply_responsibility:'user',install_responsibility:'전기팀',related_todo_source_item_id:'todo-living-walllamp'},
+{item_code:'LV-002',room_name:'거실',category:'조명',name:'플로어램프',spec_status:'candidate',procurement_status:'not_quoted',supply_responsibility:'user',related_todo_source_item_id:'todo-living-floorlamp'},
+{item_code:'LV-003',room_name:'거실',category:'가구',name:'턴테이블 받침 / 오디오 가구',spec_status:'candidate',procurement_status:'not_quoted',supply_responsibility:'user'},
+{item_code:'KD-001',room_name:'주방·다이닝',category:'조명',name:'식탁 펜던트',spec_status:'selected',procurement_status:'ready',supply_responsibility:'user',install_responsibility:'전기팀',related_todo_source_item_id:'todo-pendant-order'},
+{item_code:'LV-004',room_name:'거실',category:'커튼·블라인드',name:'거실 이중 커튼',spec_status:'selected',procurement_status:'quoting',supply_responsibility:'vendor',install_responsibility:'커튼업체',related_todo_source_item_id:'todo-curtain-quote'},
+{item_code:'BR-001',room_name:'침실',category:'커튼·블라인드',name:'침실 커튼',spec_status:'selected',procurement_status:'quoting',supply_responsibility:'vendor',install_responsibility:'커튼업체',related_todo_source_item_id:'todo-curtain-quote'},
+{item_code:'ST-001',room_name:'서재',category:'커튼·블라인드',name:'서재 로만쉐이드',spec_status:'selected',procurement_status:'quoting',supply_responsibility:'vendor',install_responsibility:'블라인드업체',related_todo_source_item_id:'todo-curtain-quote'},
+{item_code:'FB-001',room_name:'전면 베란다',category:'커튼·블라인드',name:'전면 베란다 블라인드',spec_status:'candidate',procurement_status:'quoting',supply_responsibility:'vendor',install_responsibility:'블라인드업체',related_todo_source_item_id:'todo-front-blind'},
+{item_code:'FB-002',room_name:'전면 베란다',category:'맞춤시공',name:'화단 덮개',spec_status:'candidate',procurement_status:'quoting',supply_responsibility:'vendor',related_todo_source_item_id:'todo-garden-cover'},
+{item_code:'FB-003',room_name:'전면 베란다',category:'맞춤시공',name:'방충망 단독 교체',spec_status:'candidate',procurement_status:'quoting',supply_responsibility:'contractor',related_todo_source_item_id:'todo-screen'}
 ];
 const sb=createInteriorSupabase();
 let user,project,items=[],links=[],updates=[],view='room',editing=null,autoSaveTimer=null,autoSaveBusy=false,modalOpen=false;
@@ -172,10 +177,84 @@ function render(){
 function set(id,v){$(id).value=v??''}function num(id){const v=$(id).value;return v===''?null:Number(v)}function txt(id){const v=$(id).value.trim();return v||null}
 function calcModalOrder(){const req=$('f_required').value,lead=num('f_lead'),buf=num('f_buffer')||0;if(!req||lead==null){$('f_orderby').textContent='—';$('f_orderby').className='orderBy';return}const d=new Date(req+'T12:00:00');d.setDate(d.getDate()-lead-buf);const s=d.toISOString().slice(0,10),days=dayDiff(s);$('f_orderby').textContent=s+(days<0?' · '+Math.abs(days)+'일 초과':days<=7?' · '+days+'일 남음':'');$('f_orderby').className='orderBy '+(days<0?'late':days<=7?'soon':'ok')}
 
-function nextItemCode(){
- const used=items.map(i=>String(i.item_code||'')).map(x=>/^FF-(\d+)$/i.exec(x)).filter(Boolean).map(m=>Number(m[1]));
+const ROOM_PREFIX={
+ '현관':'EN','거실':'LV','주방·다이닝':'KD','주방':'KD','다이닝':'KD',
+ '침실':'BR','서재':'ST','드레스룸':'DR','욕실':'BA','욕실 1':'B1','욕실 2':'B2',
+ '복도':'HL','전면 베란다':'FB','후면 베란다':'RB','공통':'CM'
+};
+function roomPrefix(room){return ROOM_PREFIX[String(room||'').trim()]||'CM'}
+function nextItemCode(room,excludeId=null){
+ const prefix=roomPrefix(room);
+ const used=items.filter(i=>i.id!==excludeId).map(i=>String(i.item_code||'')).map(x=>new RegExp('^'+prefix+'-(\\d+)
+function setSaveState(text,kind=''){
+ const el=$('saveState');if(!el)return;el.textContent=text;el.className='saveState'+(kind?' '+kind:'');
+}
+const MAIN_FIELDS=['f_room','f_category','f_sub','f_name','f_brand','f_product','f_model','f_finish','f_dimensions','f_qty','f_spec','f_supply','f_installresp','f_supplier','f_producturl','f_imageurl','f_proc','f_order_no','f_budget','f_quote','f_ordered_price','f_order_date','f_required','f_lead','f_buffer','f_expected','f_arrived','f_install','f_todo','f_notes'];
+function scheduleAutoSave(){
+ if(!modalOpen)return;
+ calcModalOrder();
+ clearTimeout(autoSaveTimer);
+ if(!editing)syncNewItemCode();
+ if(!$('f_room').value){setSaveState('공간을 선택해주세요');return}
+ if(!$('f_name').value.trim()){setSaveState('품목명을 입력하면 자동 저장됩니다');return}
+ setSaveState('변경사항 대기 중…','saving');
+ autoSaveTimer=setTimeout(()=>saveItem({quiet:true}),650);
+}
+function openNew(){editing=null;modalOpen=true;$('mTitle').textContent='새 품목';$('mCodeLabel').textContent='공간 선택';['f_room','f_sub','f_name','f_brand','f_product','f_model','f_finish','f_dimensions','f_supplier','f_installresp','f_producturl','f_imageurl','f_order_no','f_required','f_order_date','f_expected','f_arrived','f_install','f_todo','f_notes'].forEach(x=>set(x,''));set('f_code','');set('f_qty',1);set('f_budget','');set('f_quote','');set('f_ordered_price','');set('f_lead','');set('f_buffer',5);set('f_category','조명');set('f_spec','candidate');set('f_supply','user');set('f_proc','not_quoted');$('deleteBtn').style.display='none';$('linkList').innerHTML='<div class="subtle">품목명을 입력해 첫 자동 저장이 되면 링크를 추가할 수 있습니다.</div>';$('updateList').innerHTML='<div class="subtle">품목명을 입력해 첫 자동 저장이 되면 진행기록을 추가할 수 있습니다.</div>';setSaveState('입력하면 자동 저장됩니다');calcModalOrder();$('modal').classList.add('open')}
+function ensureRoomOption(room){if(!room)return;const s=$('f_room');if(![...s.options].some(o=>o.value===room)){const o=document.createElement('option');o.value=room;o.textContent=room;s.appendChild(o)}}
+function openItem(id){const i=items.find(x=>x.id===id);if(!i)return;editing=i;modalOpen=true;ensureRoomOption(i.room_name);$('mTitle').textContent=i.name;$('mCodeLabel').textContent=i.item_code;set('f_code',i.item_code);set('f_room',i.room_name);set('f_category',i.category);set('f_sub',i.sub_location);set('f_name',i.name);set('f_brand',i.brand);set('f_product',i.product_name);set('f_model',i.model);set('f_finish',i.finish);set('f_dimensions',i.dimensions);set('f_qty',i.qty);set('f_spec',i.spec_status);set('f_supply',i.supply_responsibility);set('f_installresp',i.install_responsibility);set('f_supplier',i.supplier);set('f_producturl',i.product_url);set('f_imageurl',i.image_url);set('f_proc',i.procurement_status);set('f_order_no',i.order_number);set('f_budget',i.budget);set('f_quote',i.quoted_price);set('f_ordered_price',i.ordered_price);set('f_order_date',dateOnly(i.order_date));set('f_required',dateOnly(i.required_on_site_date));set('f_lead',i.lead_time_days);set('f_buffer',i.buffer_days??5);set('f_expected',dateOnly(i.expected_delivery_date));set('f_arrived',dateOnly(i.actual_delivery_date));set('f_install',dateOnly(i.install_date));set('f_todo',i.related_todo_source_item_id);set('f_notes',i.notes);$('deleteBtn').style.display='inline-block';renderLinks();renderUpdates();setSaveState('저장됨','saved');calcModalOrder();$('modal').classList.add('open')}
+async function closeModal(){clearTimeout(autoSaveTimer);if(modalOpen&&$('f_name').value.trim()){await saveItem({quiet:true})}modalOpen=false;$('modal').classList.remove('open');editing=null}
+async function saveItem(opts={}){
+ if(autoSaveBusy)return editing;
+ const quiet=!!opts.quiet;
+ const room=$('f_room').value.trim();const row={project_id:project.id,item_code:$('f_code').value.trim()||(room?nextItemCode(room,editing?.id):''),room_name:room,sub_location:txt('f_sub'),category:$('f_category').value,name:$('f_name').value.trim(),brand:txt('f_brand'),product_name:txt('f_product'),model:txt('f_model'),finish:txt('f_finish'),dimensions:txt('f_dimensions'),qty:num('f_qty')||1,unit:'EA',supplier:txt('f_supplier'),supply_responsibility:$('f_supply').value,install_responsibility:txt('f_installresp'),spec_status:$('f_spec').value,procurement_status:$('f_proc').value,budget:num('f_budget'),quoted_price:num('f_quote'),ordered_price:num('f_ordered_price'),lead_time_days:num('f_lead'),buffer_days:num('f_buffer')||0,required_on_site_date:txt('f_required'),order_date:txt('f_order_date'),expected_delivery_date:txt('f_expected'),actual_delivery_date:txt('f_arrived'),install_date:txt('f_install'),order_number:txt('f_order_no'),product_url:txt('f_producturl'),image_url:txt('f_imageurl'),related_todo_source_item_id:txt('f_todo'),notes:txt('f_notes'),updated_at:new Date().toISOString()};
+ if(!row.room_name){if(!quiet)alert('공간을 선택해주세요.');setSaveState('공간을 선택해주세요');return null}if(!row.name){if(!quiet)alert('품목명을 입력해주세요.');setSaveState('품목명을 입력하면 자동 저장됩니다');return null}
+ autoSaveBusy=true;setSaveState('☁️ 저장 중…','saving');
+ try{
+  let res;
+  if(editing)res=await sb.from('ffe_items').update(row).eq('id',editing.id).select().single();
+  else res=await sb.from('ffe_items').insert(row).select().single();
+  if(res.error)throw res.error;
+  const saved=res.data;
+  const idx=items.findIndex(x=>x.id===saved.id);if(idx>=0)items[idx]=saved;else items.push(saved);
+  editing=saved;$('f_code').value=saved.item_code;$('mCodeLabel').textContent=saved.item_code;$('mTitle').textContent=saved.name;$('deleteBtn').style.display='inline-block';
+  buildFilters();render();setSaveState('✓ 자동 저장됨','saved');
+  return saved;
+ }catch(e){console.error(e);setSaveState('⚠ 저장 실패','error');if(!quiet)alert('저장 실패: '+e.message);return null}
+ finally{autoSaveBusy=false}
+}
+async function deleteItem(){if(!editing||!confirm(editing.name+' 품목을 삭제할까요?'))return;const {error}=await sb.from('ffe_items').delete().eq('id',editing.id);if(error)return alert(error.message);modalOpen=false;$('modal').classList.remove('open');editing=null;await load()}
+function renderLinks(){const a=links.filter(x=>x.item_id===editing.id);$('linkList').innerHTML=a.length?a.map(x=>'<div class="linkRow inline"><span class="tag">'+esc(x.link_type)+'</span><a class="grow" href="'+esc(x.url)+'" target="_blank" rel="noopener">'+esc(x.label)+'</a><button onclick="event.stopPropagation();removeLink(\''+x.id+'\')">삭제</button></div>').join(''):'<div class="subtle">관련 링크가 없습니다.</div>'}
+async function addLink(){if(!editing)return alert('품목을 먼저 저장해주세요.');let url=$('newLinkUrl').value.trim();if(!url)return;if(!/^https?:\/\//i.test(url))url='https://'+url;const {error}=await sb.from('ffe_links').insert({item_id:editing.id,label:$('newLinkLabel').value.trim()||'링크',url,link_type:$('newLinkType').value});if(error)return alert(error.message);$('newLinkLabel').value='';$('newLinkUrl').value='';await load();openItem(editing.id)}
+async function removeLink(id){const {error}=await sb.from('ffe_links').delete().eq('id',id);if(error)return alert(error.message);await load();openItem(editing.id)}
+function renderUpdates(){const a=updates.filter(x=>x.item_id===editing.id).slice(0,20);$('updateList').innerHTML=a.length?a.map(x=>'<div class="updateRow"><div>'+esc(x.note)+'</div><div class="subtle">'+new Date(x.created_at).toLocaleString('ko-KR')+(x.status?' · '+esc(PROC[x.status]||x.status):'')+'</div></div>').join(''):'<div class="subtle">진행기록이 없습니다.</div>'}
+async function addUpdate(){if(!editing)return alert('품목을 먼저 저장해주세요.');const note=$('newUpdate').value.trim();if(!note)return;const {error}=await sb.from('ffe_updates').insert({item_id:editing.id,note,status:$('f_proc').value});if(error)return alert(error.message);$('newUpdate').value='';await load();openItem(editing.id)}
+async function renumberByRoom(){
+ if(!items.length)return alert('정리할 품목이 없습니다.');
+ if(modalOpen)return alert('열려 있는 품목 편집창을 먼저 닫아주세요.');
+ if(!confirm('기존 품목의 Item ID를 공간별 Prefix 규칙으로 다시 정렬할까요?\n예: 현관 EN-001, 거실 LV-001, 침실 BR-001\n\n품목의 내부 UUID·링크·진행기록은 유지되고 표시 코드만 바뀝니다.'))return;
+ const ordered=[...items].sort((a,b)=>String(a.created_at||'').localeCompare(String(b.created_at||''))||String(a.item_code||'').localeCompare(String(b.item_code||'')));
+ const count={};const mapping=ordered.map(i=>{const p=roomPrefix(i.room_name);count[p]=(count[p]||0)+1;return{id:i.id,next:p+'-'+String(count[p]).padStart(3,'0')}});
+ try{
+  for(const m of mapping){const {error}=await sb.from('ffe_items').update({item_code:'TMP-'+m.id.replaceAll('-','').slice(0,18),updated_at:new Date().toISOString()}).eq('id',m.id);if(error)throw error}
+  for(const m of mapping){const {error}=await sb.from('ffe_items').update({item_code:m.next,updated_at:new Date().toISOString()}).eq('id',m.id);if(error)throw error}
+  await load();alert('공간별 코드 정리가 완료되었습니다.');
+ }catch(e){console.error(e);alert('코드 정리 중 오류가 발생했습니다: '+e.message+'\n다시 실행하면 이어서 정리할 수 있습니다.');await load()}
+}
+async function seedItems(){if(!confirm('현재 계획을 기준으로 초기 품목 13개를 추가할까요? 모두 후보/초기상태라 이후 자유롭게 수정할 수 있습니다.'))return;const payload=SEEDS.map(x=>({...x,qty:x.qty??1,unit:x.unit??'EA',project_id:project.id,buffer_days:x.buffer_days??5,updated_at:new Date().toISOString()}));const {error}=await sb.from('ffe_items').upsert(payload,{onConflict:'project_id,item_code',ignoreDuplicates:true});if(error)return alert('초기 품목 추가 실패: '+error.message);await load()}
+['search','room','category','spec','proc'].forEach(id=>$(id).addEventListener('input',render));document.querySelectorAll('.views button').forEach(b=>b.onclick=()=>{view=b.dataset.view;document.querySelectorAll('.views button').forEach(x=>x.classList.toggle('on',x===b));render()});MAIN_FIELDS.forEach(id=>{const el=$(id);if(!el)return;el.addEventListener('input',scheduleAutoSave);el.addEventListener('change',scheduleAutoSave)});
+(async()=>{try{if(!await guard())return;await getProject();await load()}catch(e){console.error(e);$('migration').style.display='block';$('migration').innerHTML='<div class="migration"><b>불러오기 실패</b><br>'+esc(e.message)+'</div>'}})();
+</script>
+</body></html>,'i').exec(x)).filter(Boolean).map(m=>Number(m[1]));
  const n=(used.length?Math.max(...used):0)+1;
- return 'FF-'+String(n).padStart(3,'0');
+ return prefix+'-'+String(n).padStart(3,'0');
+}
+function syncNewItemCode(){
+ if(editing)return;
+ const room=$('f_room').value;
+ const code=room?nextItemCode(room):'';
+ $('f_code').value=code;
+ $('mCodeLabel').textContent=code||'공간 선택';
 }
 function setSaveState(text,kind=''){
  const el=$('saveState');if(!el)return;el.textContent=text;el.className='saveState'+(kind?' '+kind:'');
