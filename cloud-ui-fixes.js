@@ -36,6 +36,9 @@
     if(!document.getElementById('cloudTodoBtn')){
       const todo=document.createElement('a');todo.id='cloudTodoBtn';todo.className='cloudNavBtn';todo.href=TOP_TODO;todo.target='_top';todo.textContent='✓ To-do';tb.prepend(todo);
     }
+    if(!document.getElementById('cloudRefreshBtn')){
+      const refresh=document.createElement('button');refresh.id='cloudRefreshBtn';refresh.className='cloudNavBtn';refresh.type='button';refresh.textContent='↻ 최신 동기화';refresh.onclick=async()=>{refresh.disabled=true;refresh.textContent='↻ 동기화 중…';try{if(typeof window.__cloudReload==='function')await window.__cloudReload();refresh.textContent='✓ 최신 상태'}catch(e){console.error(e);refresh.textContent='⚠ 다시 시도'}finally{setTimeout(()=>{refresh.disabled=false;refresh.textContent='↻ 최신 동기화'},1600)}};tb.prepend(refresh);
+    }
     return true;
   }
   addStyles();addModal();
