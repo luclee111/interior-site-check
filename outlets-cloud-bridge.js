@@ -22,6 +22,6 @@
   function renderCloudThumbs(box,id){if(!box)return;box.innerHTML='';for(const p of(cloudPhotos.get(id)||[])){const wrap=document.createElement('span');wrap.style.position='relative';wrap.style.display='inline-block';wrap.innerHTML=`<img class="thumb" src="${p.url}" style="cursor:zoom-in"><button title="삭제" style="position:absolute;right:-4px;top:-4px;border:0;border-radius:50%;width:22px;height:22px;background:#fff;box-shadow:0 1px 4px #999">×</button>`;wrap.querySelector('img').onclick=()=>window.open(p.url,'_blank');wrap.querySelector('button').onclick=()=>deleteCloudPhoto(p.id,id);box.appendChild(wrap)}}
   async function deleteCloudPhoto(pid,id){if(!confirm('이 현장사진을 삭제할까요?'))return;const p=(cloudPhotos.get(id)||[]).find(x=>x.id===pid);if(!p)return;const {error:se}=await sb.storage.from('site-photos').remove([p.storage_path]);if(se)return alert('사진 삭제 실패: '+se.message);const {error:de}=await sb.from('field_photos').delete().eq('id',pid);if(de)return alert('사진 기록 삭제 실패: '+de.message);cloudPhotos.set(id,(cloudPhotos.get(id)||[]).filter(x=>x.id!==pid));rebuild()}
   function rebuild(){document.getElementById('sidebar').innerHTML='';document.getElementById('mobileNav').innerHTML='';document.getElementById('roomPanels').innerHTML='';build()}
-  window.addEventListener('focus',()=>loadCloud().catch(console.error));
+  window.__cloudReload=async()=>{try{await loadCloud()}catch(e){console.error(e);cloudBadge('⚠️ 불러오기 오류')}};
   try{await loadCloud()}catch(e){console.error(e);cloudBadge('⚠️ 불러오기 오류');alert('Supabase 기록 불러오기 실패: '+e.message)}
 })();
