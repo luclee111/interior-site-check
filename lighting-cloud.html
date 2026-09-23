@@ -18,9 +18,9 @@
      try{
        text.textContent='☁️ Supabase 기록 동기화 중…';
        const doc=frame.contentDocument;if(!doc||!doc.body){clearTimeout(timer);fail('조명 화면을 읽지 못했습니다.');return}
-       const s=doc.createElement('script');s.src='./lighting-cloud-bridge.js?v=20260913c';
+       const s=doc.createElement('script');s.src='./lighting-cloud-bridge.js?v=20260923b';
        s.onload=()=>{
-         const u=doc.createElement('script');u.src='./cloud-ui-fixes.js?v=20260913c';doc.body.appendChild(u);
+         const u=doc.createElement('script');u.src='./cloud-ui-fixes.js?v=20260923b';doc.body.appendChild(u);
          clearTimeout(timer);loading.classList.add('hide');
        };
        s.onerror=()=>{clearTimeout(timer);fail('동기화 모듈을 불러오지 못했습니다. 새로고침해주세요.')};
@@ -28,7 +28,7 @@
      }catch(e){clearTimeout(timer);fail('화면 연결 오류: '+e.message)}
    };
    frame.onerror=()=>{clearTimeout(timer);fail('조명 기본 화면을 불러오지 못했습니다.')};
-   frame.src='./lighting.html?embedded=1&v=20260913c';
+   frame.src='./lighting.html?embedded=1&v=20260923b';
  }catch(e){clearTimeout(timer);fail(e.message||String(e))}
 })();
 </script></body></html>
